@@ -1,0 +1,20 @@
+- name: "Install Python dependencies"
+  action: apt pkg={{ item }}
+              state=latest
+  with_items:
+      - python-virtualenv
+      - python3-dev
+      - libffi-dev
+      - libssl-dev
+
+- name: "Set up Python 3 virtualenv"
+  command: "{{ ssldump_repo_directory }}/script/create_virtualenv.sh {{ ssldump_virtualenv_base_directory }}"
+
+- name: "Install supervisord"
+  action: apt pkg=supervisor state=latest
+
+- name: "Install supervisord configuration file"
+  template: src=ssldump_supervisor.conf.j2
+            dest=/etc/supervisor/conf.d/ssldump.conf
+  notify:
+    - reload supervisord
