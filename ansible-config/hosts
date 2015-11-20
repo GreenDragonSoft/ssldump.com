@@ -1,0 +1,12 @@
+[webservers]
+ssldump-web-1 ansible_ssh_host=46.101.48.50 ansible_ssh_user=root
+
+[webservers:vars]
+ssldump_repo_directory=/opt/ssldump/ssldump-github
+
+
+[vagrant]
+vagrant-ssldump ansible_ssh_host=127.0.0.1 ansible_ssh_port=2200                
+
+[vagrant:vars]
+ssldump_repo_directory=/opt/ssldump/ssldump-dev

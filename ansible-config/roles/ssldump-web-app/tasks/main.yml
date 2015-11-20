@@ -1,0 +1,14 @@
+- name: "Install Git"
+  action: apt pkg={{ item }}
+          state=latest
+          cache_valid_time=86400
+          update_cache=yes
+
+  with_items:
+      - git
+
+- name: "Check out master branch of ssldump repository"
+  action: git repo=https://github.com/greendragonsoft/ssldump.com
+          depth=1
+          version=master
+          dest="{{ ssldump_repo_directory }}"

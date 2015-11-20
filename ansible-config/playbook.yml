@@ -1,0 +1,10 @@
+- hosts: vagrant
+  roles:
+      - nginx-reverse-proxy
+      - ssldump-supervisor
+
+- hosts: webservers
+  roles:
+      - ssldump-web-app
+      - nginx-reverse-proxy
+      - ssldump-supervisor
