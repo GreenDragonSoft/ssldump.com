@@ -51,10 +51,10 @@ class TestSleepHandler(tornado.web.RequestHandler):
 
 def make_app():
     return tornado.web.Application([
-        (r"/expires/(?P<hostname>" + HOSTNAME_REGEX + "):(?P<port>\d{1,5})/?",
+        (r"/(?P<hostname>" + HOSTNAME_REGEX + "):(?P<port>\d{1,5})/?",
          CertExpiryHandler),
 
-        (r"/expires/(?P<hostname>" + HOSTNAME_REGEX + ")/?",
+        (r"/(?P<hostname>" + HOSTNAME_REGEX + ")/?",
          CertExpiryHandler),
 
         (r"/_test/sleep/(?P<seconds>\d{1,3})/?", TestSleepHandler),
