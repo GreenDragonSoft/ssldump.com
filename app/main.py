@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
+import json
 import logging
 import time
+
+from collections import OrderedDict
 
 import tornado.ioloop
 import tornado.web
@@ -24,7 +27,11 @@ class CertExpiryHandler(tornado.web.RequestHandler):
         port = int(port) if port else 443
 
         expiry_date = yield self._blocking_get_cert_expiry(hostname, port)
-        self.write(str(expiry_date))
+        self.write(json.dumps(OrderedDict([
+            ('hostname', hostname),
+            ('port', port),
+            ('certificate_expiry', str(expiry_date)),
+        ]), indent=4))
 
     @run_on_executor
     def _blocking_get_cert_expiry(self, hostname, port):
