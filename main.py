@@ -12,7 +12,7 @@ from tornado.concurrent import run_on_executor
 
 from get_certificate import get_certificate_expiry
 
-HOSTNAME_REGEX = '[a-zA-Z0-9.]+'  # ish...
+HOSTNAME_REGEX = '[a-zA-Z0-9.\-_]+'  # ish...
 
 
 class CertExpiryHandler(tornado.web.RequestHandler):
