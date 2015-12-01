@@ -11,7 +11,7 @@ import sys
 from collections import OrderedDict
 from pprint import pprint
 
-
+import utcdatetime
 import OpenSSL
 
 from iso8601 import parse_date as parse_datetime
@@ -115,7 +115,7 @@ def parse_date_field(date_field):
         match.group('second'),
         match.group('timezone'))
 
-    return parse_datetime(isodate)
+    return utcdatetime.utcdatetime.from_datetime(parse_datetime(isodate))
 
 if __name__ == '__main__':
     main(sys.argv[1])
