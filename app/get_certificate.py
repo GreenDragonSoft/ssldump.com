@@ -94,12 +94,14 @@ def download_certificate_for(hostname, port):
 
 def parse_date_field(date_field):
     """
-    >>> parse_date_field(b'20161029235959Z')
-    datetime.datetime(2016, 10, 29, 23, 59, 59, tzinfo=<UTC>)
-    >>> parse_date_field(b'20161029235959+0100')
-    datetime.datetime(2016, 10, 29, 22, 59, 59, tzinfo=<UTC>)
-    >>> parse_date_field(b'20161029235959+0100')
-    datetime.datetime(2016, 10, 30, 00, 59, 59, tzinfo=<UTC>)
+    Return a utcdatetime from `datetime_field`, which is of one of the
+    following formats:
+
+    YYYYMMDDhhmmssZ
+    YYYYMMDDhhmmss+hhmm
+    YYYYMMDDhhmmss-hhmm
+
+    See http://pyopenssl.sourceforge.net/pyOpenSSL.html/openssl-x509.html
     """
     match = re.match(
         '(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})'
