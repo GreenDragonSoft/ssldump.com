@@ -22,7 +22,7 @@ class CertExpiryHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=2)
 
     @gen.coroutine
-    @tornado.web.addslash
+    @tornado.web.removeslash
     def get(self, hostname, port='443'):
         port = int(port) if port else 443
 
@@ -44,7 +44,7 @@ class TestSleepHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=2)
 
     @gen.coroutine
-    @tornado.web.addslash
+    @tornado.web.removeslash
     def get(self, seconds):
         seconds = int(seconds)
         result = yield self._blocking_sleep(seconds)
