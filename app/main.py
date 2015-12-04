@@ -56,19 +56,30 @@ class TestSleepHandler(tornado.web.RequestHandler):
         return 'Slept {} seconds'.format(seconds)
 
 
-def make_app():
-    return tornado.web.Application([
-        (r"/(?P<hostname>" + HOSTNAME_REGEX + "):(?P<port>\d{1,5})/?",
-         CertExpiryHandler),
+def make_app(**kwargs):
+    return tornado.web.Application(
+        [
+            (r"/(?P<hostname>" + HOSTNAME_REGEX + "):(?P<port>\d{1,5})/?",
+             CertExpiryHandler),
 
-        (r"/(?P<hostname>" + HOSTNAME_REGEX + ")/?",
-         CertExpiryHandler),
+            (r"/(?P<hostname>" + HOSTNAME_REGEX + ")/?",
+             CertExpiryHandler),
 
-        (r"/_test/sleep/(?P<seconds>\d{1,3})/?", TestSleepHandler),
-    ])
+            (r"/_test/sleep/(?P<seconds>\d{1,3})/?", TestSleepHandler),
+        ],
+        **kwargs)
+
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    app = make_app()
+    import os
+    if os.environ.get('SSLDUMP_ENVIRONMENT', 'production') == 'development':
+        print('DEBUG mode.')
+        logging.basicConfig(level=logging.DEBUG)
+        debug = True
+    else:
+        logging.basicConfig(level=logging.INFO)
+        debug = False
+
+    app = make_app(debug=debug)
     app.listen(8001)
     tornado.ioloop.IOLoop.current().start()
