@@ -4,6 +4,7 @@ import json
 import logging
 import time
 
+from os.path import dirname, join as pjoin
 from collections import OrderedDict
 
 import tornado.ioloop
@@ -29,7 +30,15 @@ def get_certificate_info(hostname, port):
     ])
 
 
-class CertExpiryHandler(tornado.web.RequestHandler):
+class RenderToTemplateMixin(object):
+    LOADER = tornado.template.Loader(
+        pjoin(dirname(__file__), 'templates'))
+
+    def render_to_template(self, template_name, args_dict):
+        return self.LOADER.load(template_name).generate(**args_dict)
+
+
+class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
     executor = ThreadPoolExecutor(max_workers=2)
 
     @gen.coroutine
@@ -40,7 +49,20 @@ class CertExpiryHandler(tornado.web.RequestHandler):
         raw_data = yield self._blocking_get_cert_info(hostname, port)
 
         json_string = json.dumps(raw_data, indent=4)
-        self.write(json_string)
+
+        if client_accepts_html(self.request.headers.get('Accept')):
+
+            self.write(self.render_to_template(
+                'dump.html',
+                {
+                    'hostname': hostname,
+                    'json_string': json_string,
+                }
+            ))
+
+        else:
+            self.set_header('Content-Type', 'application/json')
+            self.write(json_string)
 
     @run_on_executor
     def _blocking_get_cert_info(self, hostname, port):
@@ -63,6 +85,11 @@ class TestSleepHandler(tornado.web.RequestHandler):
     def _blocking_sleep(self, seconds):
         time.sleep(seconds)
         return 'Slept {} seconds'.format(seconds)
+
+
+def client_accepts_html(accept_header):
+    logging.warning('Accept header: `{}`'.format(accept_header))
+    return accept_header is not None and 'text/html' in accept_header.lower()
 
 
 def make_app(**kwargs):
