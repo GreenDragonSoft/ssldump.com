@@ -50,7 +50,9 @@ class TestGetCertificateInfo(unittest.TestCase):
             result = main.get_certificate_info('example.com', 443)
 
         result = json.loads(json.dumps(result))
-        assert_equal(set(['request', 'certificate_expiry']), result.keys())
+        assert_equal(
+            set(['request', 'certificate_expiry']),
+            set(result.keys()))
 
         assert_equal(
             {'hostname': 'example.com', 'port': 443},
