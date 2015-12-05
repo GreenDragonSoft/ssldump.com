@@ -18,6 +18,17 @@ from get_certificate import get_certificate_expiry
 HOSTNAME_REGEX = '[a-zA-Z0-9.\-_]+'  # ish...
 
 
+def get_certificate_info(hostname, port):
+    return OrderedDict([
+        ('request', OrderedDict([
+            ('hostname', hostname),
+            ('port', port),
+        ])),
+        ('certificate_expiry',
+         str(get_certificate_expiry(hostname, port))),
+    ])
+
+
 class CertExpiryHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=2)
 
@@ -26,16 +37,14 @@ class CertExpiryHandler(tornado.web.RequestHandler):
     def get(self, hostname, port='443'):
         port = int(port) if port else 443
 
-        expiry_date = yield self._blocking_get_cert_expiry(hostname, port)
-        self.write(json.dumps(OrderedDict([
-            ('hostname', hostname),
-            ('port', port),
-            ('certificate_expiry', str(expiry_date)),
-        ]), indent=4))
+        raw_data = yield self._blocking_get_cert_info(hostname, port)
+
+        json_string = json.dumps(raw_data, indent=4)
+        self.write(json_string)
 
     @run_on_executor
-    def _blocking_get_cert_expiry(self, hostname, port):
-        return get_certificate_expiry(hostname, port)
+    def _blocking_get_cert_info(self, hostname, port):
+        return get_certificate_info(hostname, port)
 
 
 class TestSleepHandler(tornado.web.RequestHandler):
