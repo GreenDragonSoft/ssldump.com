@@ -5,7 +5,6 @@ import logging
 import time
 
 from os.path import dirname, join as pjoin
-from collections import OrderedDict
 
 import tornado.ioloop
 import tornado.web
@@ -14,20 +13,10 @@ from concurrent.futures import ThreadPoolExecutor
 from tornado import gen
 from tornado.concurrent import run_on_executor
 
-from get_certificate import get_certificate_expiry
+from get_certificate import get_certificate
+from format_response import format_response
 
 HOSTNAME_REGEX = '[a-zA-Z0-9.\-_]+'  # ish...
-
-
-def get_certificate_info(hostname, port):
-    return OrderedDict([
-        ('request', OrderedDict([
-            ('hostname', hostname),
-            ('port', port),
-        ])),
-        ('certificate_expiry',
-         str(get_certificate_expiry(hostname, port))),
-    ])
 
 
 class RenderToTemplateMixin(object):
@@ -46,9 +35,10 @@ class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
     def get(self, hostname, port='443'):
         port = int(port) if port else 443
 
-        raw_data = yield self._blocking_get_cert_info(hostname, port)
+        x509 = yield self._blocking_download_certificate(hostname, port)
+        response_data = format_response(hostname, port, x509)
 
-        json_string = json.dumps(raw_data, indent=4)
+        json_string = json.dumps(response_data, indent=4)
 
         if client_accepts_html(self.request.headers.get('Accept')):
 
@@ -65,8 +55,8 @@ class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
             self.write(json_string)
 
     @run_on_executor
-    def _blocking_get_cert_info(self, hostname, port):
-        return get_certificate_info(hostname, port)
+    def _blocking_download_certificate(self, hostname, port):
+        return get_certificate(hostname, port)
 
 
 class TestSleepHandler(tornado.web.RequestHandler):

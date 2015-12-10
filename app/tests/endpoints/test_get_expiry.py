@@ -1,5 +1,4 @@
 import json
-import unittest
 
 import mock
 
@@ -8,7 +7,7 @@ from nose.tools import assert_equal, assert_in
 from tornado.testing import AsyncHTTPTestCase
 from contextlib import contextmanager
 
-from utcdatetime import utcdatetime
+from .. import load_example_x509
 
 import main
 
@@ -20,10 +19,19 @@ EXPECTED_JSON = {
 }
 
 
+def assert_valid_json(string):
+    try:
+        json.loads(string)
+    except ValueError as e:
+        assert False, 'Failed to load as JSON: ' + repr(e)
+
+
 @contextmanager
 def setup_fake_response():
-    with mock.patch('main.get_certificate_info') as mocked_get_cert:
-        mocked_get_cert.return_value = EXPECTED_JSON
+    x509 = load_example_x509()
+
+    with mock.patch('main.get_certificate') as mocked_get_cert:
+        mocked_get_cert.return_value = x509
         yield
 
 
@@ -36,7 +44,7 @@ class TestGetExpiry(AsyncHTTPTestCase):
             response = self.fetch('/example.com', follow_redirects=False)
 
         assert_equal(200, response.code)
-        assert_equal(EXPECTED_JSON, json.loads(response.body.decode('utf-8')))
+        assert_valid_json(response.body.decode('utf-8'))
 
     def test_get_expiry_trailing_slash_redirects(self):
         response = self.fetch('/example.com/', follow_redirects=False)
@@ -64,15 +72,15 @@ class TestGetExpiryContentTypeNegotiation(AsyncHTTPTestCase):
         response = self._get_response_for_header(None)
 
         assert_equal(200, response.code)
-        assert_equal(EXPECTED_JSON, json.loads(response.body.decode('utf-8')))
         assert_equal('application/json', response.headers['content-type'])
+        assert_valid_json(response.body.decode('utf-8'))
 
     def test_json_accept_header_returns_json(self):
         response = self._get_response_for_header('application/json')
 
         assert_equal(200, response.code)
-        assert_equal(EXPECTED_JSON, json.loads(response.body.decode('utf-8')))
         assert_equal('application/json', response.headers['content-type'])
+        assert_valid_json(response.body.decode('utf-8'))
 
     def test_html_accept_header_returns_json(self):
         response = self._get_response_for_header(
@@ -84,21 +92,3 @@ class TestGetExpiryContentTypeNegotiation(AsyncHTTPTestCase):
         assert_equal(
             'text/html; charset=UTF-8',
             response.headers['content-type'])
-
-
-class TestGetCertificateInfo(unittest.TestCase):
-    def test_result_structure(self):
-        with mock.patch('main.get_certificate_expiry') as mocked_get_expiry:
-            mocked_get_expiry.return_value = utcdatetime(2015, 6, 7, 13, 52)
-            result = main.get_certificate_info('example.com', 443)
-
-        result = json.loads(json.dumps(result))
-        assert_equal(
-            set(['request', 'certificate_expiry']),
-            set(result.keys()))
-
-        assert_equal(
-            {'hostname': 'example.com', 'port': 443},
-            result['request'])
-
-        assert_equal('2015-06-07T13:52:00Z', result['certificate_expiry'])
