@@ -2,7 +2,7 @@ from nose.tools import assert_equal
 
 from utcdatetime import utcdatetime
 
-from get_certificate import parse_date_field
+from parse_certificate import parse_date_field
 
 
 def test_parse_date_field():
