@@ -31,10 +31,6 @@ def format_response(hostname, port, x509):
         #  ('certificate.der', get_certificate_asn1_as_utf8(x509)),
     ])
 
-    command_line_examples = [
-        (name.replace('_', '-'), value) for name, value in FIELDS.items()
-    ]
-
     json_version = FIELDS
 
     return OrderedDict([
@@ -44,8 +40,6 @@ def format_response(hostname, port, x509):
         ])),
 
         ('cert', FIELDS),
-
-        ('command_line_examples', command_line_examples),
 
         ('json_version', json.dumps(json_version, indent=4)),
     ])

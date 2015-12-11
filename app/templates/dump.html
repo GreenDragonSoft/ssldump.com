@@ -39,8 +39,6 @@ pre.clipped {
   <body>
   <h1>SSL/TLS certificate for {{ request.hostname }}{% if request.port != 443 %}:{{ request.port }}{% endif %}</h1>
 
-  <h2>Certificate information</h2>
-
   <table>
     <tbody>
       <tr>
@@ -78,28 +76,7 @@ pre.clipped {
           <a href="certificate.txt">certificate.txt</a>
         </td>
       </tr>
-      -->
-    </tbody>
-  </table>
-
-  <h2>Command-line interface</h2>
-  <table class="cli">
-    <tbody>
-
-      <tr>
-        <td>$ curl {{ uri }}</td>
-        <td class="arrow">⇒</td>
-        <td><pre class="clipped">{{ json_version }}</pre></td>
       </tr>
-
-      {% for endpoint, example_value in command_line_examples %}
-      <tr>
-        <td>$ curl {{ uri }}/{{ endpoint }}</td>
-        <td class="arrow">⇒</td>
-        <td><pre class="clipped">{{ example_value }}</pre></td>
-      </tr>
-      {% endfor %}
-
     </tbody>
   </table>
 
