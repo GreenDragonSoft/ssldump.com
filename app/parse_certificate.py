@@ -30,6 +30,19 @@ def parse_expiry(x509):
     return parse_date_field(x509.get_notAfter())
 
 
+def parse_serial_number(x509):
+    # http://www.pyopenssl.org/en/stable/api/crypto.html#OpenSSL.crypto.X509.get_serial_number
+    return int_to_hex(x509.get_serial_number())
+
+
+def int_to_hex(integer):
+    octets = format(integer, 'x')
+    if len(octets) % 2 != 0:  # odd number, prepend 0
+        octets = '0{}'.format(octets)
+
+    return ':'.join(re.findall('..', octets))
+
+
 def decode_certificate(x509):
     certificate = OrderedDict()
     certificate['expires'] = parse_date_field(x509.get_notAfter())

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import json
 import logging
 import time
 
@@ -54,21 +53,15 @@ class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
         self._render(response_data)
 
     def _render(self, response_data):
-        json_string = json.dumps(response_data, indent=4)
+        response_data['uri'] = self.request.host + self.request.uri
 
         if client_accepts_html(self.request.headers.get('Accept')):
 
-            self.write(self.render_to_template(
-                'dump.html',
-                {
-                    'hostname': response_data['request']['hostname'],
-                    'json_string': json_string,
-                    'certificate_items': [('a', 1), ('b', 2)],
-                }
-            ))
+            self.write(self.render_to_template('dump.html', response_data))
 
         else:
             self.set_header('Content-Type', 'application/json')
+            json_string = response_data['json_version']
             self.write(json_string)
 
     @run_on_executor
