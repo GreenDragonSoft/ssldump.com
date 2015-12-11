@@ -13,10 +13,20 @@ from concurrent.futures import ThreadPoolExecutor
 from tornado import gen
 from tornado.concurrent import run_on_executor
 
+import OpenSSL
+
 from get_certificate import get_certificate
 from format_response import format_response
 
 HOSTNAME_REGEX = '[a-zA-Z0-9.\-_]+'  # ish...
+
+
+def load_example_x509():
+    filename = pjoin(
+        dirname(__file__), 'tests', 'sample_data', 'example.com.pem')
+    with open(filename, 'rb') as f:
+        return OpenSSL.crypto.load_certificate(
+            OpenSSL.crypto.FILETYPE_PEM, f.read())
 
 
 class RenderToTemplateMixin(object):
@@ -38,6 +48,9 @@ class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
         x509 = yield self._blocking_download_certificate(hostname, port)
         response_data = format_response(hostname, port, x509)
 
+        self._render(response_data)
+
+    def _render(self, response_data):
         json_string = json.dumps(response_data, indent=4)
 
         if client_accepts_html(self.request.headers.get('Accept')):
@@ -45,8 +58,9 @@ class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
             self.write(self.render_to_template(
                 'dump.html',
                 {
-                    'hostname': hostname,
+                    'hostname': response_data['request']['hostname'],
                     'json_string': json_string,
+                    'certificate_items': [('a', 1), ('b', 2)],
                 }
             ))
 
@@ -57,6 +71,13 @@ class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
     @run_on_executor
     def _blocking_download_certificate(self, hostname, port):
         return get_certificate(hostname, port)
+
+
+class TestCertExpiryHandler(CertExpiryHandler):
+    def get(self):
+
+        x509 = load_example_x509()
+        self._render(format_response('example.com', 443, x509))
 
 
 class TestSleepHandler(tornado.web.RequestHandler):
@@ -90,6 +111,9 @@ def make_app(**kwargs):
 
             (r"/(?P<hostname>" + HOSTNAME_REGEX + ")/?",
              CertExpiryHandler),
+
+            (r"/_test/example.com",
+             TestCertExpiryHandler),
 
             (r"/_test/sleep/(?P<seconds>\d{1,3})/?", TestSleepHandler),
         ],
