@@ -13,6 +13,8 @@ from concurrent.futures import ThreadPoolExecutor
 from tornado import gen
 from tornado.concurrent import run_on_executor
 
+from jinja2 import Environment, FileSystemLoader
+
 import OpenSSL
 
 from get_certificate import get_certificate
@@ -30,11 +32,12 @@ def load_example_x509():
 
 
 class RenderToTemplateMixin(object):
-    LOADER = tornado.template.Loader(
-        pjoin(dirname(__file__), 'templates'))
+    ENV = Environment(loader=FileSystemLoader(
+        [pjoin(dirname(__file__), 'templates')]))
 
     def render_to_template(self, template_name, args_dict):
-        return self.LOADER.load(template_name).generate(**args_dict)
+        template = self.ENV.get_template(template_name)
+        return template.render(args_dict)
 
 
 class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
