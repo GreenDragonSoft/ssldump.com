@@ -53,7 +53,10 @@ class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
         self._render(response_data)
 
     def _render(self, response_data):
-        response_data['uri'] = self.request.host + self.request.uri
+        response_data['uri'] = '{}://{}{}'.format(
+            self.request.protocol,
+            self.request.host,
+            self.request.uri)
 
         if client_accepts_html(self.request.headers.get('Accept')):
 
