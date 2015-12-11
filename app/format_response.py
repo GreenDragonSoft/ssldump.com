@@ -26,16 +26,14 @@ def format_response(hostname, port, x509):
         ('serial_number', parse_serial_number(x509)),
         ('expiry_datetime', str(expiry_datetime)),
         #  ('expiry_days_remaining', days_remaining),
-        #  ('certificate.txt', get_certificate_text_as_utf8(x509)),
-        #  ('certificate.pem', get_certificate_pem_as_utf8(x509)),
-        #  ('certificate.der', get_certificate_asn1_as_utf8(x509)),
+        ('certificate.txt', get_certificate_text_as_utf8(x509)),
+        ('certificate.pem', get_certificate_pem_as_utf8(x509)),
+        ('certificate.der.txt', get_certificate_asn1_as_utf8(x509)),
+        ('certificate.der', get_certificate_asn1_as_binary(x509)),
     ])
 
-    command_line_examples = [
-        (name.replace('_', '-'), value) for name, value in FIELDS.items()
-    ]
-
-    json_version = FIELDS
+    json_field_names = ['serial_number', 'expiry_datetime']
+    json_version = OrderedDict([(k, FIELDS[k]) for k in json_field_names])
 
     return OrderedDict([
         ('request', OrderedDict([
@@ -44,8 +42,6 @@ def format_response(hostname, port, x509):
         ])),
 
         ('cert', FIELDS),
-
-        ('command_line_examples', command_line_examples),
 
         ('json_version', json.dumps(json_version, indent=4)),
     ])
@@ -63,11 +59,22 @@ def get_certificate_pem_as_utf8(x509):
     return string
 
 
+def get_certificate_asn1_as_binary(x509):
+    return OpenSSL.crypto.dump_certificate(FILETYPE_ASN1, x509)
+
+
 def get_certificate_asn1_as_utf8(x509):
-    octets = OpenSSL.crypto.dump_certificate(FILETYPE_ASN1, x509)
+    octets = bytearray(get_certificate_asn1_as_binary(x509))
     octet_strings = ['{0:02x}'.format(octet) for octet in octets]
 
-    return ':'.join(octet_strings)
+    long_line = ':'.join(octet_strings)
+
+    return split_every_n(long_line, 54)
+
+
+def split_every_n(string, n):
+    return '\n'.join(
+        [string[i:i + n] for i in range(0, len(string), n)])
 
 
 if __name__ == '__main__':

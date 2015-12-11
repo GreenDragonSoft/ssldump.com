@@ -24,6 +24,10 @@ def test_has_cert_section():
         set([
             'serial_number',
             'expiry_datetime',
+            'certificate.der',
+            'certificate.der.txt',
+            'certificate.txt',
+            'certificate.pem',
         ]),
         set(RESULT['cert'].keys()))
 
@@ -40,13 +44,3 @@ def test_has_json_version_section():
             'expiry_datetime',
         ]),
         set(json.loads(RESULT['json_version']).keys()))
-
-
-def test_has_command_line_examples_section():
-    assert_in('command_line_examples', RESULT)
-    assert_equal(
-        set([
-            'serial-number',
-            'expiry-datetime',
-        ]),
-        set([key for key, value in RESULT['command_line_examples']]))
