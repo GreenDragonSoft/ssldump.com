@@ -82,13 +82,15 @@ class TestGetExpiryContentTypeNegotiation(AsyncHTTPTestCase):
         assert_equal('application/json', response.headers['content-type'])
         assert_valid_json(response.body.decode('utf-8'))
 
-    def test_html_accept_header_returns_json(self):
+    def test_html_accept_header_returns_html(self):
         response = self._get_response_for_header(
             '"text/html,application/xhtml+xml,application/xml;'
             'q=0.9,*/*;q=0.8"')
 
         assert_equal(200, response.code)
-        assert_in('<h1>example.com</h1>', response.body.decode('utf-8'))
+        assert_in(
+            '<h1>SSL/TLS certificate for example.com</h1>',
+            response.body.decode('utf-8'))
         assert_equal(
             'text/html; charset=UTF-8',
             response.headers['content-type'])

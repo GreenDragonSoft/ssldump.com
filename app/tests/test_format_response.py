@@ -1,3 +1,5 @@
+import json
+
 from nose.tools import assert_in, assert_equal
 
 from format_response import format_response
@@ -16,5 +18,35 @@ def test_has_request_section():
         RESULT['request'])
 
 
-def test_certificate_expiry():
-    assert_equal('2018-11-28T12:00:00Z', RESULT['certificate_expiry'])
+def test_has_cert_section():
+    assert_in('cert', RESULT)
+    assert_equal(
+        set([
+            'serial_number',
+            'expiry_datetime',
+        ]),
+        set(RESULT['cert'].keys()))
+
+
+def test_certificate_expiry_datetime():
+    assert_equal('2018-11-28T12:00:00Z', RESULT['cert']['expiry_datetime'])
+
+
+def test_has_json_version_section():
+    assert_in('json_version', RESULT)
+    assert_equal(
+        set([
+            'serial_number',
+            'expiry_datetime',
+        ]),
+        set(json.loads(RESULT['json_version']).keys()))
+
+
+def test_has_command_line_examples_section():
+    assert_in('command_line_examples', RESULT)
+    assert_equal(
+        set([
+            'serial-number',
+            'expiry-datetime',
+        ]),
+        set([key for key, value in RESULT['command_line_examples']]))
