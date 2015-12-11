@@ -16,6 +16,10 @@ table, th, td {
   border: 1px solid black;
 }
 
+td {
+  padding: 10px;
+}
+
 td.arrow {
   border-right: none;
   border-left: none;
@@ -25,10 +29,15 @@ table.cli {
   font-family: monospace;
 }
 
-pre.clipped {
+pre.clipped-horizontal {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+pre.clipped-vertical {
   max-height: 100px;
   overflow: hidden;
-  max-width: 200px;
   text-overflow: clip;
 }
 
@@ -42,38 +51,39 @@ pre.clipped {
   <table>
     <tbody>
       <tr>
-        <td>Serial number</td><td>{{ cert.serial_number }}</td>
+        <td><a href="{{ uri }}/serial-number">Serial number</a></td>
+        <td>{{ cert.serial_number }}</td>
       </tr>
 
       <tr>
-        <td>Expiry</td><td>{{ cert.expiry_datetime }}<!-- ({{ cert.expiry_days_remaining }} days time)--></td>
-      </tr>
-
-      <!--
-      <tr>
-        <td>
-          PEM file
-        </td>
-        <td>
-          <a href="certificate.txt">certificate.pem</a>
-        </td>
+        <td><a href="{{ uri }}/expiry-datetime">Expiry</a></td>
+        <td>{{ cert.expiry_datetime }}<!-- ({{ cert.expiry_days_remaining }} days time)--></td>
       </tr>
 
       <tr>
         <td>
-          ASN1 file
+          <a href="{{ uri }}/certificate.txt">certificate.txt</a>
         </td>
         <td>
-          <a href="certificate.der">certificate.der</a>
+          <pre class="clipped-vertical">{{ cert['certificate.txt'] }}</pre>
         </td>
       </tr>
 
       <tr>
         <td>
-          Text file
+          <a href="{{ uri }}/certificate.der">certificate.der</a><br>(ASN1 format)
         </td>
         <td>
-          <a href="certificate.txt">certificate.txt</a>
+          <pre class="clipped-vertical">{{ cert['certificate.der.txt'] }}</pre>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <a href="{{ uri }}/certificate.pem">certificate.pem</a><br>(PEM format)
+        </td>
+        <td>
+          <pre class="clipped-vertical">{{ cert['certificate.pem'] }}</pre>
         </td>
       </tr>
       </tr>

@@ -24,6 +24,10 @@ def test_has_cert_section():
         set([
             'serial_number',
             'expiry_datetime',
+            'certificate.der',
+            'certificate.der.txt',
+            'certificate.txt',
+            'certificate.pem',
         ]),
         set(RESULT['cert'].keys()))
 

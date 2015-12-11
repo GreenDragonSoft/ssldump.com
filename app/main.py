@@ -44,13 +44,17 @@ class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
 
     @gen.coroutine
     @tornado.web.removeslash
-    def get(self, hostname, port='443'):
+    def get(self, hostname, port='443', field=None):
         port = int(port) if port else 443
 
         x509 = yield self._blocking_download_certificate(hostname, port)
         response_data = format_response(hostname, port, x509)
 
-        self._render(response_data)
+        if field is not None:
+            self._render_field(field, response_data['cert'],
+                               response_data['request']['hostname'])
+        else:
+            self._render(response_data)
 
     def _render(self, response_data):
         response_data['uri'] = '{}://{}{}'.format(
@@ -66,6 +70,42 @@ class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
             self.set_header('Content-Type', 'application/json')
             json_string = response_data['json_version']
             self.write(json_string)
+
+    def _render_field(self, field_name, cert, hostname):
+        renderers = {
+            'serial-number': (
+                self._render_as_text, cert['serial_number']),
+
+            'expiry-datetime': (
+                self._render_as_text, cert['expiry_datetime']),
+
+            'certificate.txt': (
+                self._render_as_download, cert['certificate.txt'],
+                'text/plain', 'certificate_{}.txt'.format(hostname)),
+
+            'certificate.pem': (
+                self._render_as_download, cert['certificate.pem'],
+                'text/plain', 'certificate_{}.pem'.format(hostname)),
+
+            'certificate.der': (
+                self._render_as_download, cert['certificate.der'],
+                'application/octet-stream',
+                'certificate_{}.der'.format(hostname))
+        }
+
+        renderer_and_args = renderers[field_name]
+        renderer_and_args[0](*renderer_and_args[1:])
+
+    def _render_as_text(self, string):
+        self.set_header('Content-Type', 'text/plain')
+        self.write(string)
+
+    def _render_as_download(self, obj, content_type, filename):
+        self.set_header('Content-Type', content_type)
+        self.set_header(
+            'Content-Disposition',
+            'attachment;filename="{}"'.format(filename))
+        self.write(obj)
 
     @run_on_executor
     def _blocking_download_certificate(self, hostname, port):
@@ -101,14 +141,25 @@ def client_accepts_html(accept_header):
     logging.warning('Accept header: `{}`'.format(accept_header))
     return accept_header is not None and 'text/html' in accept_header.lower()
 
+HOSTNAME_CAPTURE = r'(?P<hostname>' + HOSTNAME_REGEX + ')'
+PORT_CAPTURE = r'(?P<port>\d{1,5})'
+FIELD_CAPTURE = r'(?P<field>[a-z-.]+)'
+
 
 def make_app(**kwargs):
     return tornado.web.Application(
         [
-            (r"/(?P<hostname>" + HOSTNAME_REGEX + "):(?P<port>\d{1,5})/?",
+            (r"/" + HOSTNAME_CAPTURE + "/?",
              CertExpiryHandler),
 
-            (r"/(?P<hostname>" + HOSTNAME_REGEX + ")/?",
+            (r"/" + HOSTNAME_CAPTURE + ":" + PORT_CAPTURE + "/?",
+             CertExpiryHandler),
+
+            (r"/" + HOSTNAME_CAPTURE + '/' + FIELD_CAPTURE + "/?",
+             CertExpiryHandler),
+
+            (r"/" + HOSTNAME_CAPTURE + ":" + PORT_CAPTURE + '/'
+             + FIELD_CAPTURE + "/?",
              CertExpiryHandler),
 
             (r"/_test/example.com",

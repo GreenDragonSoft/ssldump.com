@@ -51,6 +51,55 @@ class TestGetExpiry(AsyncHTTPTestCase):
         assert_equal(301, response.code)
         assert_equal('/example.com', response.headers['location'])
 
+    def test_get_serial_number(self):
+        with setup_fake_response():
+            response = self.fetch('/example.com/serial-number')
+
+        assert_equal(200, response.code)
+        assert_equal('text/plain', response.headers['content-type'])
+        assert_equal('0e:64:c5:fb:c2:36:ad:e1:4b:17:2a:eb:41:c7:8c:b0',
+                     response.body.decode('utf-8'))
+
+    def test_get_expiry_datetime(self):
+        with setup_fake_response():
+            response = self.fetch('/example.com/expiry-datetime')
+
+        assert_equal(200, response.code)
+        assert_equal('text/plain', response.headers['content-type'])
+        assert_equal('2018-11-28T12:00:00Z',
+                     response.body.decode('utf-8'))
+
+    def test_get_certificate_text(self):
+        with setup_fake_response():
+            response = self.fetch('/example.com/certificate.txt')
+
+        assert_equal(200, response.code)
+        assert_equal('text/plain', response.headers['content-type'])
+        assert_equal('attachment;filename="certificate_example.com.txt"',
+                     response.headers['content-disposition'])
+        assert_equal(4223, len(response.body))
+
+    def test_get_certificate_txt(self):
+        with setup_fake_response():
+            response = self.fetch('/example.com/certificate.pem')
+
+        assert_equal(200, response.code)
+        assert_equal('text/plain', response.headers['content-type'])
+        assert_equal('attachment;filename="certificate_example.com.pem"',
+                     response.headers['content-disposition'])
+        assert_equal(2122, len(response.body))
+
+    def test_get_certificate_asn1(self):
+        with setup_fake_response():
+            response = self.fetch('/example.com/certificate.der')
+
+        assert_equal(200, response.code)
+        assert_equal('application/octet-stream',
+                     response.headers['content-type'])
+        assert_equal('attachment;filename="certificate_example.com.der"',
+                     response.headers['content-disposition'])
+        assert_equal(1526, len(response.body))
+
 
 class TestGetExpiryContentTypeNegotiation(AsyncHTTPTestCase):
     def get_app(self):
