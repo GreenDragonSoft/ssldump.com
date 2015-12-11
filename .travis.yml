@@ -13,3 +13,5 @@ install:
 script: make test
 after_success:
   coveralls
+notifications:
+  email: false
