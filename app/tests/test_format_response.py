@@ -28,6 +28,16 @@ def test_has_cert_section():
             'certificate.der.txt',
             'certificate.txt',
             'certificate.pem',
+            'subject_state',
+            'email_address',
+            'subject_country',
+            'subject_common_name',
+            'subject_postal_code',
+            'subject_locality',
+            'subject_organization',
+            'subject_organizational_unit',
+            'subject_street',
+
         ]),
         set(RESULT['cert'].keys()))
 

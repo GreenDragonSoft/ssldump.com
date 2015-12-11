@@ -72,13 +72,7 @@ class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
             self.write(json_string)
 
     def _render_field(self, field_name, cert, hostname):
-        renderers = {
-            'serial-number': (
-                self._render_as_text, cert['serial_number']),
-
-            'expiry-datetime': (
-                self._render_as_text, cert['expiry_datetime']),
-
+        special_renderers = {
             'certificate.txt': (
                 self._render_as_download, cert['certificate.txt'],
                 'text/plain', 'certificate_{}.txt'.format(hostname)),
@@ -93,7 +87,24 @@ class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
                 'certificate_{}.der'.format(hostname))
         }
 
-        renderer_and_args = renderers[field_name]
+        field_name = field_name.replace('-', '_')
+
+        if field_name in special_renderers:
+            logging.info(
+                'Using special renderer for `{}`'.format(field_name))
+            renderer_and_args = special_renderers[field_name]
+
+        elif cert.get(field_name) is not None:  # Default: just send text
+            logging.info(
+                'Rendering `{}` with default (text)'.format(field_name))
+            renderer_and_args = (self._render_as_text, cert[field_name])
+
+        else:
+            self.set_status(404)
+            self.set_header('content-type', 'application/json')
+            self.write('{"error": "No such field."}')
+            return
+
         renderer_and_args[0](*renderer_and_args[1:])
 
     def _render_as_text(self, string):

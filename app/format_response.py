@@ -8,7 +8,8 @@ from collections import OrderedDict
 import OpenSSL
 from OpenSSL.crypto import FILETYPE_TEXT, FILETYPE_PEM, FILETYPE_ASN1
 
-from parse_certificate import parse_expiry, parse_serial_number
+from parse_certificate import (
+    parse_expiry, parse_serial_number, parse_subject_components)
 
 
 def main(x509_pem_filename):
@@ -21,10 +22,24 @@ def main(x509_pem_filename):
 
 def format_response(hostname, port, x509):
     expiry_datetime = parse_expiry(x509)
+    subject_components = parse_subject_components(x509)
 
     FIELDS = OrderedDict([
         ('serial_number', parse_serial_number(x509)),
         ('expiry_datetime', str(expiry_datetime)),
+        ('subject_common_name', subject_components.get('common_name')),
+        ('subject_organization', subject_components.get('organization')),
+
+        ('subject_organizational_unit',
+         subject_components.get('organizational_unit')),
+
+        ('subject_street', subject_components.get('street')),
+        ('subject_locality', subject_components.get('locality')),
+        ('subject_state', subject_components.get('state')),
+        ('subject_postal_code', subject_components.get('postal_code')),
+        ('subject_country', subject_components.get('country')),
+        ('email_address', subject_components.get('email_address')),
+
         #  ('expiry_days_remaining', days_remaining),
         ('certificate.txt', get_certificate_text_as_utf8(x509)),
         ('certificate.pem', get_certificate_pem_as_utf8(x509)),
@@ -42,6 +57,20 @@ def format_response(hostname, port, x509):
         ])),
 
         ('cert', FIELDS),
+
+        ('standard_fields', OrderedDict([
+            ('serial_number', 'Serial number'),
+            ('expiry_datetime', 'Expiry'),
+            ('subject_common_name', 'Common name'),
+            ('subject_organization', 'Organization'),
+            ('subject_organizational_unit', 'Organizational unit'),
+            ('subject_street', 'Street'),
+            ('subject_locality', 'Locality'),
+            ('subject_state', 'State or province'),
+            ('subject_postal_code', 'Postal code'),
+            ('subject_country', 'Country'),
+            ('email_address', 'Email address'),
+        ])),
 
         ('json_version', json.dumps(json_version, indent=4)),
     ])

@@ -19,10 +19,12 @@ COMPONENT_NAMES = {
     'C': 'country',
     'ST': 'state',
     'L': 'locality',
-    'O': 'organisation',
+    'O': 'organization',
+    'OU': 'organizational_unit',
     'street': 'street',
     'postalCode': 'postal_code',
     'businessCategory': 'business_category',
+    'emailAddress': 'email_address',
 }
 
 
@@ -33,6 +35,20 @@ def parse_expiry(x509):
 def parse_serial_number(x509):
     # http://www.pyopenssl.org/en/stable/api/crypto.html#OpenSSL.crypto.X509.get_serial_number
     return int_to_hex(x509.get_serial_number())
+
+
+def parse_subject_components(x509):
+    # http://www.pyopenssl.org/en/stable/api/crypto.html#OpenSSL.crypto.X509Name
+    components = {}
+    for key, value in x509.get_subject().get_components():
+        key, value = key.decode('utf-8'), value.decode('utf-8')
+        try:
+            components[COMPONENT_NAMES[key]] = value
+        except KeyError:
+            LOG.warning('Unknown subject component `{}`'.format(key))
+            components[key] = value
+
+    return components
 
 
 def int_to_hex(integer):

@@ -50,15 +50,16 @@ pre.clipped-vertical {
 
   <table>
     <tbody>
-      <tr>
-        <td><a href="{{ uri }}/serial-number">Serial number</a></td>
-        <td>{{ cert.serial_number }}</td>
-      </tr>
 
+
+      {% for field, description in standard_fields.items() %}
+      {% if cert[field] %}
       <tr>
-        <td><a href="{{ uri }}/expiry-datetime">Expiry</a></td>
-        <td>{{ cert.expiry_datetime }}<!-- ({{ cert.expiry_days_remaining }} days time)--></td>
+        <td><a href="{{ uri }}/{{ field | replace('_', '-') }}">{{ description }}</a></td>
+        <td>{{ cert[field] }}</td>
       </tr>
+      {% endif %}
+      {% endfor %}
 
       <tr>
         <td>
