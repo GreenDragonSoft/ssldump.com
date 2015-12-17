@@ -40,6 +40,9 @@ def format_response(hostname, port, x509):
         ('subject_country', subject_components.get('country')),
         ('email_address', subject_components.get('email_address')),
 
+        ('sha1_fingerprint', get_fingerprint(x509, 'sha1')),
+        ('sha256_fingerprint', get_fingerprint(x509, 'sha256')),
+
         #  ('expiry_days_remaining', days_remaining),
         ('certificate.txt', get_certificate_text_as_utf8(x509)),
         ('certificate.pem', get_certificate_pem_as_utf8(x509)),
@@ -70,6 +73,8 @@ def format_response(hostname, port, x509):
             ('subject_postal_code', 'Postal code'),
             ('subject_country', 'Country'),
             ('email_address', 'Email address'),
+            ('sha1_fingerprint', 'SHA1 Fingerprint'),
+            ('sha256_fingerprint', 'SHA256 Fingerprint'),
         ])),
 
         ('json_version', json.dumps(json_version, indent=4)),
@@ -99,6 +104,10 @@ def get_certificate_asn1_as_utf8(x509):
     long_line = ':'.join(octet_strings)
 
     return split_every_n(long_line, 54)
+
+
+def get_fingerprint(x509, digest_name):
+    return x509.digest(digest_name).decode('ascii').lower()  # eg '64:2d:ea...'
 
 
 def split_every_n(string, n):
