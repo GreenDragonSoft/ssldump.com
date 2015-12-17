@@ -154,7 +154,7 @@ def client_accepts_html(accept_header):
 
 HOSTNAME_CAPTURE = r'(?P<hostname>' + HOSTNAME_REGEX + ')'
 PORT_CAPTURE = r'(?P<port>\d{1,5})'
-FIELD_CAPTURE = r'(?P<field>[a-z-.]+)'
+FIELD_CAPTURE = r'(?P<field>[a-z0-9-.]+)'
 
 
 def make_app(**kwargs):
