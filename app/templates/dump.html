@@ -55,7 +55,7 @@ pre.clipped-vertical {
       {% for field, description in standard_fields.items() %}
       {% if cert[field] %}
       <tr>
-        <td><a href="{{ uri }}/{{ field | replace('_', '-') }}">{{ description }}</a></td>
+        <td><a href="{{ uri }}/{{ field | replace('_', '-') }}" rel="nofollow">{{ description }}</a></td>
         <td>{{ cert[field] }}</td>
       </tr>
       {% endif %}
