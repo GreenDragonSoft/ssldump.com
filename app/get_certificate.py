@@ -51,10 +51,14 @@ def download_certificate_for(hostname, port):
     ssl_context.set_verify(OpenSSL.SSL.VERIFY_NONE, callback=some_callback)
 
     s = socket.socket()
+    s.settimeout(2)
 
     connection = OpenSSL.SSL.Connection(ssl_context, s)
     connection.set_tlsext_host_name(hostname.encode('ascii'))  # for SNI
     connection.connect((hostname, port))
+
+    connection.setblocking(1)
+
     connection.do_handshake()
     cert = connection.get_peer_certificate()  # Returns OpenSSL.crypto.X509
 
