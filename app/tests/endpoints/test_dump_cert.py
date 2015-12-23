@@ -143,3 +143,29 @@ class TestDumpCertContentTypeNegotiation(AsyncHTTPTestCase):
         assert_equal(
             'text/html; charset=UTF-8',
             response.headers['content-type'])
+
+
+class TestDumpCertNormalisation(AsyncHTTPTestCase):
+    def get_app(self):
+        return main.make_app()
+
+    def assert_redirects(self, location, redirect_to):
+        with setup_fake_response():
+            response = self.fetch(location, follow_redirects=False)
+
+        assert_equal(301, response.code)
+        assert_equal(redirect_to, response.headers['location'])
+
+    def test_default_port_is_removed(self):
+        self.assert_redirects('/example.com:443', '/example.com')
+
+    def test_hostname_is_lowercased(self):
+        self.assert_redirects('/Example.com', '/example.com')
+
+    def test_default_port_is_removed_with_field(self):
+        self.assert_redirects(
+            '/example.com:443/serial-number', '/example.com/serial-number')
+
+    def test_hostname_is_lowercased_with_field(self):
+        self.assert_redirects(
+            '/Example.com/serial-number', '/example.com/serial-number')

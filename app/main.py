@@ -68,8 +68,14 @@ class DumpCertHandler(JsonErrorHandlerMixin, tornado.web.RequestHandler,
 
     @gen.coroutine
     @tornado.web.removeslash
-    def get(self, hostname, port='443', field=None):
-        port = int(port) if port else 443
+    def get(self, hostname, port=None, field=None):
+        normalised_uri = self.normalise_uri(self.request.uri, port)
+
+        if normalised_uri != self.request.uri:
+            self.redirect(normalised_uri, 301)
+            return
+
+        port = int(port) if port is not None else 443
 
         x509 = yield self._blocking_download_certificate(hostname, port)
         response_data = format_response(hostname, port, x509)
@@ -79,6 +85,14 @@ class DumpCertHandler(JsonErrorHandlerMixin, tornado.web.RequestHandler,
                                response_data['request']['hostname'])
         else:
             self._render(response_data)
+
+    def normalise_uri(self, uri, port):
+        uri = uri.lower()
+
+        if port == '443':
+            uri = uri.replace(':443', '')
+
+        return uri
 
     def _render(self, response_data):
         response_data['uri'] = '{}://{}{}'.format(
