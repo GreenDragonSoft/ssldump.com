@@ -12,3 +12,5 @@
           depth=1
           version=master
           dest="{{ ssldump_repo_directory }}"
+  notify:
+    - restart ssldump
