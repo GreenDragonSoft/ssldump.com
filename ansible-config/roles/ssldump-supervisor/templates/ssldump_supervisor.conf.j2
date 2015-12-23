@@ -8,6 +8,7 @@
 
 [program:ssldump]
 command={{ ssldump_repo_directory }}/script/run.sh {{ ssldump_virtualenv_base_directory }}
+user=ssldump-web-app
 
 ;[program:theprogramname]
 ;command=/bin/cat              ; the program (relative uses PATH, can take args)
