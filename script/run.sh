@@ -17,7 +17,7 @@ activate_virtualenv() {
 }
 
 run_webapp() {
-    ${THIS_DIR}/../app/main.py
+    exec ${THIS_DIR}/../app/main.py
 }
 
 
