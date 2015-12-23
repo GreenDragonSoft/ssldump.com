@@ -10,6 +10,12 @@
 - name: "Set up Python 3 virtualenv"
   command: "{{ ssldump_repo_directory }}/script/create_virtualenv.sh {{ ssldump_virtualenv_base_directory }}"
 
+- name: "Create ssldump-web-app user"
+  user: name=ssldump-web-app
+        comment="Unprivileged user for running the Python tornado app"
+        home=/opt/ssldump
+        createhome=no
+
 - name: "Install supervisord"
   action: apt pkg=supervisor state=latest
 
