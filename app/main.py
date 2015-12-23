@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+import json
 import logging
 import time
 
+from collections import OrderedDict
 from os.path import dirname, join as pjoin
 
 import tornado.ioloop
@@ -11,6 +13,7 @@ import tornado.web
 from concurrent.futures import ThreadPoolExecutor
 from tornado import gen
 from tornado.concurrent import run_on_executor
+from tornado.web import HTTPError
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -39,7 +42,28 @@ class RenderToTemplateMixin(object):
         return template.render(args_dict)
 
 
-class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
+class JsonErrorHandlerMixin(object):
+    def write_error(self, status_code, exc_info, **kwargs):
+        exception_type, exception, traceback = exc_info
+
+        if exception_type is HTTPError:
+            reason = exception.reason
+        else:
+            reason = repr(exception)
+
+        self.set_status(status_code)
+        self.set_header('content-type', 'application/json')
+        self.write(json.dumps(OrderedDict(
+            [
+                ('error', reason),
+                ('http_status', status_code),
+            ]),
+            indent=4))
+
+
+class CertExpiryHandler(JsonErrorHandlerMixin, tornado.web.RequestHandler,
+                        RenderToTemplateMixin):
+
     executor = ThreadPoolExecutor(max_workers=2)
 
     @gen.coroutine
@@ -100,10 +124,9 @@ class CertExpiryHandler(tornado.web.RequestHandler, RenderToTemplateMixin):
             renderer_and_args = (self._render_as_text, cert[field_name])
 
         else:
-            self.set_status(404)
-            self.set_header('content-type', 'application/json')
-            self.write('{"error": "No such field."}')
-            return
+            raise HTTPError(
+                status_code=404,
+                reason='No such property: `{}`.'.format(field_name))
 
         renderer_and_args[0](*renderer_and_args[1:])
 
