@@ -23,4 +23,4 @@
   template: src=ssldump_supervisor.conf.j2
             dest=/etc/supervisor/conf.d/ssldump.conf
   notify:
-    - reload supervisord
+    - reread supervisor config
