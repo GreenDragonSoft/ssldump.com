@@ -35,7 +35,7 @@ def setup_fake_response():
         yield
 
 
-class TestGetExpiry(AsyncHTTPTestCase):
+class TestDumpCert(AsyncHTTPTestCase):
     def get_app(self):
         return main.make_app()
 
@@ -101,7 +101,7 @@ class TestGetExpiry(AsyncHTTPTestCase):
         assert_equal(1526, len(response.body))
 
 
-class TestGetExpiryContentTypeNegotiation(AsyncHTTPTestCase):
+class TestDumpCertContentTypeNegotiation(AsyncHTTPTestCase):
     def get_app(self):
         return main.make_app()
 

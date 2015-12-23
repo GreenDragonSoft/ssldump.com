@@ -61,8 +61,8 @@ class JsonErrorHandlerMixin(object):
             indent=4))
 
 
-class CertExpiryHandler(JsonErrorHandlerMixin, tornado.web.RequestHandler,
-                        RenderToTemplateMixin):
+class DumpCertHandler(JsonErrorHandlerMixin, tornado.web.RequestHandler,
+                      RenderToTemplateMixin):
 
     executor = ThreadPoolExecutor(max_workers=2)
 
@@ -146,7 +146,7 @@ class CertExpiryHandler(JsonErrorHandlerMixin, tornado.web.RequestHandler,
         return get_certificate(hostname, port)
 
 
-class TestCertExpiryHandler(CertExpiryHandler):
+class TestDumpCertHandler(DumpCertHandler):
     def get(self):
 
         x509 = load_example_x509()
@@ -184,20 +184,20 @@ def make_app(**kwargs):
     return tornado.web.Application(
         [
             (r"/" + HOSTNAME_CAPTURE + "/?",
-             CertExpiryHandler),
+             DumpCertHandler),
 
             (r"/" + HOSTNAME_CAPTURE + ":" + PORT_CAPTURE + "/?",
-             CertExpiryHandler),
+             DumpCertHandler),
 
             (r"/" + HOSTNAME_CAPTURE + '/' + FIELD_CAPTURE + "/?",
-             CertExpiryHandler),
+             DumpCertHandler),
 
-            (r"/" + HOSTNAME_CAPTURE + ":" + PORT_CAPTURE + '/'
-             + FIELD_CAPTURE + "/?",
-             CertExpiryHandler),
+            (r"/" + HOSTNAME_CAPTURE + ":" + PORT_CAPTURE + '/' +
+             FIELD_CAPTURE + "/?",
+             DumpCertHandler),
 
             (r"/_test/example.com",
-             TestCertExpiryHandler),
+             TestDumpCertHandler),
 
             (r"/_test/sleep/(?P<seconds>\d{1,3})/?", TestSleepHandler),
         ],
